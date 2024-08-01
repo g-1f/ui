@@ -1,11 +1,8 @@
-import "@/styles/globals.css";
-import { Inter as FontSans } from "next/font/google";
+import React from 'react';
 import { cn } from "@/lib/utils";
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+// Import your global CSS file
+import '@/app/globals.css';  // Adjust this path if necessary
 
 export default function RootLayout({
   children,
@@ -14,15 +11,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-    <head/>
-    <body
-      className={cn(
-        "min-h-screen bg-background font-sans antialiased",
-        fontSans.variable
-      )}
-    >
-    {children}
-    </body>
+      <head />
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          "font-segoe-ui"  // This class will be defined in your CSS
+        )}
+      >
+        {children}
+      </body>
     </html>
   );
 }
