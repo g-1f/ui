@@ -1,50 +1,43 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage, } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { Message } from "@/app/action";
 
-import { ChatPromptTemplate, MessagesPlaceholder, } from "@langchain/core/prompts";
-import { AgentExecutor, createOpenAIToolsAgent } from "langchain/agents";
-import { tools } from "@/agents/tools";
-import { systemPrompt } from "@/agents/system-prompt";
+// Simulated system prompt
+const systemPrompt = "You are a helpful AI assistant specializing in finance.";
 
-const llm = new ChatOpenAI({
-  modelName: "gpt-4-turbo",
-  temperature: 0.1,
-});
-
-
-const MEMORY_KEY = "chat_history";
-const prompt = ChatPromptTemplate.fromMessages([
-  ["system", systemPrompt],
-  new MessagesPlaceholder(MEMORY_KEY),
-  ["user", "{input}"],
-  new MessagesPlaceholder("agent_scratchpad"),
-]);
+// Simulated response generation
+function generateSimulatedResponse(input: string): string {
+  // This is a very basic simulation. In a real scenario, you'd want more sophisticated logic here.
+  const responses = [
+    "Based on recent market trends, the stock you mentioned has shown volatility.",
+    "It's important to consider multiple factors when analyzing stock performance.",
+    "Historical data suggests that this sector has been growing steadily.",
+    "Remember to diversify your portfolio to manage risk effectively.",
+    "Recent news about the company might impact its stock price in the short term."
+  ];
+  return responses[Math.floor(Math.random() * responses.length)];
+}
 
 export async function runAgent(messages: BaseMessage[]) {
   const lastMessage = messages[messages.length - 1];
+  const response = generateSimulatedResponse(lastMessage.content);
 
-  const agent = await createOpenAIToolsAgent({
-    llm,
-    tools,
-    prompt,
-  });
-  const agentExecutor = new AgentExecutor({
-    agent,
-    tools,
-  }).withConfig({ runName: "Agent" });
-  const eventStream = await agentExecutor.streamEvents(
-    {
-      input: lastMessage.content,
-      chat_history: [...messages.slice(0, -1)],
-    },
-    { version: "v1" }
-  );
-  return eventStream;
+  // Simulate an event stream
+  const eventStream = [
+    { event: "on_llm_start", data: { name: "Simulated LLM" } },
+    { event: "on_llm_stream", data: { chunk: { message: { content: response } } } },
+    { event: "on_llm_end", data: { output: response } }
+  ];
+
+  // Return an async generator to mimic the original function's behavior
+  return (async function* () {
+    for (const event of eventStream) {
+      yield event;
+    }
+  })();
 }
 
-// converts to langchain messages: system, ai, human, tool
-export const convertMessages = (messages: Message[]) => {
+// Convert messages to the format expected by the frontend
+export const convertMessages = (messages: Message[]): BaseMessage[] => {
   return messages.map((message) => {
     switch (message.role) {
       case "system":
@@ -53,15 +46,6 @@ export const convertMessages = (messages: Message[]) => {
         return new HumanMessage(message.content);
       case "assistant":
         return new AIMessage(message.content);
-      case "tool":
-        const toolMessageWithContent = new ToolMessage({
-          tool_call_id: message.id,
-          content: message.content,
-          additional_kwargs: {
-            tool_calls: message.toolCalls,
-          },
-        });
-        return new ToolMessage(toolMessageWithContent);
       default:
         throw new Error(`Unsupported message role: ${message.role}`);
     }
