@@ -23,7 +23,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ['"Segoe UI"', '-apple-system', 'BlinkMacSystemFont', '"Roboto"', '"Helvetica Neue"', 'sans-serif'],
+        sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
